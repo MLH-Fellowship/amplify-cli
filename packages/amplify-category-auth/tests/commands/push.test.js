@@ -1,18 +1,11 @@
 const push = require('../../commands/auth/push');
 
-jest.mock('../../provider-utils/awscloudformation/utils/trigger-file-uploader', () => {
-  return {
-    uploadFiles: jest.fn(() => Promise.reject(new Error())),
-  };
-});
-
 describe('auth push: ', () => {
-  const mockConstructExeInfo = jest.fn();
   const mockPushResources = jest.fn();
 
   const mockContext = {
     amplify: {
-      constructExeInfo: mockConstructExeInfo,
+      constructExeInfo: jest.fn(),
       pushResources: mockPushResources,
     },
     parameters: {
@@ -40,6 +33,12 @@ describe('auth push: ', () => {
   });
 
   describe('case: uploadFiles fails to upload trigger files to S3', () => {
+    jest.mock('../../provider-utils/awscloudformation/utils/trigger-file-uploader', () => {
+      return {
+        uploadFiles: jest.fn(() => Promise.reject(new Error())),
+      };
+    });
+
     it('push run method should fail to push resources and print an error message', async () => {
       await push.run(mockContext);
       expect(mockContext.print.error).toBeCalledWith('There was an error pushing the auth resource');
